@@ -21,6 +21,9 @@ dbstop if error
 fileName = dir(fullfile(sourceFolder,'*.csv'));  % Get the names of csv file in the source folder
 fileNum = numel(fileName); %Gets the total number of files to be imported
 fileNames = cell(fileNum,1);
+
+%drop the repetitive things at the beginning (first 50 chars)
+fileNames = cellfun(@(fileNames) fileNames(50:end), fileNames, 'un', 0);
             
 for i1 = 1:fileNum
    
@@ -31,9 +34,6 @@ for i1 = 1:fileNum
     % Gets the name of the file we are importing now
     fileNames{i1} = fileName(i1,1).name(1:end-4); 
 
-    %drop the repetitive things at the beginning (first 50 chars)
-    fileNames = cellfun(@(fileNames) fileNames(50:end), fileNames, 'un', 0);
-
     RawData = readtable(fileNames{i1});
 
     %put area and group into same table
@@ -42,10 +42,10 @@ for i1 = 1:fileNum
 
     %compute size
     sz = size(areaAndGroup);
-    numbNaNs = ismember(areaAndGroup.Group, '');
-    sizeNaNs = size(numbNaNs);
+    numbNaNs = isnan(areaAndGroup.Group);
+    sizeNaNs = sum(numbNaNs);
 
-    if sizeNaNs(1) == sz(1)
+    if sizeNaNs == sz(1)
 
         areaAndGroup = table({'NoClass'}, [1], 'VariableNames',{'Group' 'Area'}); %#ok
 
@@ -53,17 +53,6 @@ for i1 = 1:fileNum
 
     %drop the rows without classes
     areaAndGroup(ismember(areaAndGroup.Group, ''), :) = [];
-
-%     areaAndGroup(ismember(areaAndGroup.Group, NaN), :) = [];
-
-%     sz = size(areaAndGroup);
-    
-%     %if the file is got no classifications then fill it with nonsense.
-%     if sz(1) == 0
-% 
-%         areaAndGroup = table({'NoClass', 'NoClass'}, [1 1], 'VariableNames',{'Group' 'Va'});
-% 
-%     end
 
     %dropping duplicate rows
     [~, indx] = unique(areaAndGroup, 'rows');
