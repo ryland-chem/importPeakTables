@@ -1,4 +1,20 @@
-function [fileNames, areaAndGroup, fullTable]= importPeakTables(sourceFolder)
+% Ryland T. Giebelhaus (2022).
+% www.ryland-giebelhaus.com
+
+% this function is made to read in peak tables, select the class and
+% integration and spit them out into a table so they can be explored further
+% with chemometrics.
+
+%INPUTS
+    %sourceFolder: The folder containing all .csv files. Best if this is
+        %given as the whole path from ':C\'
+    %groupCol: column number containing the group or class
+    %areaCol: column containing the area
+%OUTPUTS
+    %fileNames: Names of files and in order which they were digested
+    %fullTable: The reconstructed peak table.
+
+function [fileNames, fullTable]= importPeakTables(sourceFolder, groupCol, areaCol)
 
 %add directory and the string
 dbstop if error
@@ -10,7 +26,7 @@ for i1 = 1:fileNum
    
     cd(sourceFolder);
     
-    disp(strcat('working on file number - -- ', num2str(i1),'-out of ',num2str(fileNum)))
+    disp(strcat('working on file number --- ', num2str(i1),' -out of ',num2str(fileNum)))
 
     % Gets the name of the file we are importing now
     fileNames{i1} = fileName(i1,1).name(1:end-4); 
@@ -18,7 +34,7 @@ for i1 = 1:fileNum
     RawData = readtable(fileNames{i1});
 
     %put area and group into same table
-    areaAndGroup = [RawData(:,15), RawData(:,9)];
+    areaAndGroup = [RawData(:,groupCol), RawData(:,areaCol)];
 
     %drop the rows without classes
     areaAndGroup(ismember(areaAndGroup.Group, ''), :) = [];
