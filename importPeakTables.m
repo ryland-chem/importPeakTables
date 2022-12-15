@@ -21,9 +21,6 @@ dbstop if error
 fileName = dir(fullfile(sourceFolder,'*.csv'));  % Get the names of csv file in the source folder
 fileNum = numel(fileName); %Gets the total number of files to be imported
 fileNames = cell(fileNum,1);
-
-%drop the repetitive things at the beginning (first 50 chars)
-fileNames = cellfun(@(fileNames) fileNames(50:end), fileNames, 'un', 0);
             
 for i1 = 1:fileNum
    
@@ -40,12 +37,7 @@ for i1 = 1:fileNum
     areaAndGroup = [RawData(:,groupCol), RawData(:,areaCol)];
     areaAndGroup.Properties.VariableNames = ["Group", 'Area'];
 
-    %compute size
-    sz = size(areaAndGroup);
-    numbNaNs = isnan(areaAndGroup.Group);
-    sizeNaNs = sum(numbNaNs);
-
-    if sizeNaNs == sz(1)
+    if isa(areaAndGroup.Group, 'double') == 1
 
         areaAndGroup = table({'NoClass'}, [1], 'VariableNames',{'Group' 'Area'}); %#ok
 
@@ -81,6 +73,9 @@ for i1 = 1:fileNum
 
 end       
 
+%drop the repetitive things at the beginning (first 50 chars)
+fileNames = cellfun(@(fileNames) fileNames(50:end), fileNames, 'un', 0);
 
+fullTable(ismember(fullTable.Group, 'NoClass'), :) = [];
 
 end
