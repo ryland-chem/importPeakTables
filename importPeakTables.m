@@ -21,6 +21,26 @@ dbstop if error
 fileName = dir(fullfile(sourceFolder,'*.csv'));  % Get the names of csv file in the source folder
 fileNum = numel(fileName); %Gets the total number of files to be imported
 fileNames = cell(fileNum,1);
+
+% % Set up the Import Options and import the data
+opts = delimitedTextImportOptions("NumVariables", 34);
+% 
+% Specify range and delimiter
+opts.DataLines = [2, Inf];
+opts.Delimiter = ",";
+% 
+% % Specify column names and types
+opts.VariableNames = ["PeakId", "Mass", "Start", "Stop", "RT", "RI", "MDGC", "RT1tr", "RT2tr", "Area", "Height", "Width", "Area_Percent", "SampleFileName", "CompoundName", "Group", "Type", "Formula", "MF", "RMF", "Probability", "MW", "ExactMass", "CASNO", "NISTNO", "ID", "Library", "OtherDBS", "Contributor", "TenLargestPeaks", "Synonyms", "StructureDiagram", "LibraryRI", "SignalToNoiseRatio"];
+opts.VariableTypes = ["double", "categorical", "double", "double", "double", "double", "categorical", "double", "double", "double", "double", "double", "double", "categorical", "categorical", "string", "double", "categorical", "double", "double", "double", "double", "double", "datetime", "double", "double", "categorical", "categorical", "categorical", "string", "string", "string", "double", "double"];
+
+% % Specify file level properties
+opts.ExtraColumnsRule = "ignore";
+opts.EmptyLineRule = "read";
+% 
+% % Specify variable properties
+opts = setvaropts(opts, ["Group", "TenLargestPeaks", "Synonyms", "StructureDiagram"], "WhitespaceRule", "preserve");
+opts = setvaropts(opts, ["Mass", "MDGC", "SampleFileName", "CompoundName", "Group", "Formula", "Library", "OtherDBS", "Contributor", "TenLargestPeaks", "Synonyms", "StructureDiagram"], "EmptyFieldRule", "auto");
+opts = setvaropts(opts, "CASNO", "InputFormat", "yy-MM-dd");
             
 for i1 = 1:fileNum
    
@@ -31,7 +51,7 @@ for i1 = 1:fileNum
     % Gets the name of the file we are importing now
     fileNames{i1} = fileName(i1,1).name(1:end-4); 
 
-    RawData = readtable(fileNames{i1});
+    RawData = readtable(fileNames{i1}, opts);
 
     %put area and group into same table
     areaAndGroup = [RawData(:,groupCol), RawData(:,areaCol)];
@@ -55,6 +75,7 @@ for i1 = 1:fileNum
     bingroups = [];
     [binvalues, bingroups] = groupsummary(areaAndGroup.Area, areaAndGroup.Group, @sum);
     binvalues = array2table(binvalues);
+    bingroups = table(bingroups);
     areaAndGroup = [bingroups, binvalues];
     areaNumber = sprintf("area%d", i1);
     areaAndGroup.Properties.VariableNames = ["Group", areaNumber];
